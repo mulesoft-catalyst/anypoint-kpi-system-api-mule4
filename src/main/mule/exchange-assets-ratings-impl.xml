@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-exchange-assets-ratings" doc:id="1c5dfaf1-1bb6-4b2e-b12c-b3d4a28f6383" >
+		<flow-ref doc:name="authenticate-with-anypointSubFlow" doc:id="2858387d-6aa9-479a-967b-337aa23e2932" name="authenticate-with-anypointSubFlow"/>
+		<set-variable value="${exchange.page.limit}" doc:name="Limit" doc:id="84304361-9581-4e74-8252-9b1b3264651b" variableName="limit"/>
+		<ee:transform doc:name="Initialize Variables" doc:id="e708e01a-3eb9-4cf8-803f-d33bbd8297b8" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="rootOrgId" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.organizationId]]></ee:set-variable>
+				<ee:set-variable variableName="limit" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.limit]]></ee:set-variable>
+				<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/java
+---
+0]]></ee:set-variable>
+				<ee:set-variable variableName="assetsList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="GET Exchange Pages" doc:id="5485b2b0-e5f4-4048-9b62-294b80f15d0b" name="get-exchange-pagesFlow"/>
+		<logger level="INFO" doc:name="Log Size of Total Asset List" doc:id="365c506a-8435-4a78-8759-c27aa2972555" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Total Size of Asset List: " ++ sizeOf(vars.assetsList)]' />
+		<ee:transform doc:name="Caclulate Asset Ratings by Type" doc:id="4deb13f9-16ab-4ed9-adde-1463b8e34fc0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+fun process(assets) =
+  {
+    (if ((sizeOf(assets)) > 0)
+      (assets groupBy $."type" mapObject (v, k) -> {
+        ((k)) : sizeOf(v)
+      })
+    else
+      {})
+  }
+---
+{
+  lessThanTwoFive: process(vars.assetsList filter ($.rating < 2.5)),
+  twoFiveToThreeFive: process(vars.assetsList filter ($.rating < 3.5 and $.rating >= 2.5)),
+  threeFiveToFour: process(vars.assetsList filter ($.rating < 4 and $.rating >= 3.5)),
+  fourToFourFive: process(vars.assetsList filter ($.rating < 4.5 and $.rating >= 4)),
+  greaterThanFourFive: process(vars.assetsList filter ($.rating >= 4.5))
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Add API Status" doc:id="dc01a634-c05a-497e-93b6-932953675556" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+input payload application/java  
+output application/json  
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "Anypoint Exchange asset ratings successfully retrieved.",
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID"
+  },
+  assets: vars.assetsList,
+  assetRatings: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

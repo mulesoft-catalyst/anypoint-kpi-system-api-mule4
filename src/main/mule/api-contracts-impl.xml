@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+	xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd">
+	<sub-flow name="api-contracts-organizationFlow" doc:id="a7d8ed39-53e2-4e11-962e-967608f2682d" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="Authenticate w/ Anypoint" />
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+		<flow-ref doc:name="lookup-organization-nameFlow" doc:id="6637bef4-f6ab-45c2-a2c0-55d5b968c715" name="lookup-organization-nameFlow"/>
+		<flow-ref doc:name="retrieve-environmentsFlow" doc:id="2d0e8859-c909-4a21-9923-008e6647f830" name="retrieve-environmentsFlow"/>
+		<set-variable value="#[sizeOf(payload)]" doc:name="Set Variable" doc:id="c159be8c-f33d-4586-8caf-ca6c6455b641" variableName="collection-splitter0-group-size"/>
+		<foreach doc:name="For Each" doc:id="435d9f49-2bb0-476d-b7e9-b886cc43094c" >
+			<ee:transform doc:name="Set Environment Variables" doc:id="aa5f29a7-172c-4c32-a2da-cc98aa7b52eb">
+                <ee:variables>
+                    <ee:set-variable variableName="environmentId"><![CDATA[%dw 2.0
+output application/java  
+---
+payload.envID]]></ee:set-variable>
+                    <ee:set-variable variableName="environmentName"><![CDATA[%dw 2.0
+output application/java  
+---
+payload.envName]]></ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+            <flow-ref name="retrieve-apis-and-associated-contractsFlow" doc:name="retrieve-apis-and-associated-contractsFlow"/>
+			<aggregators:group-based-aggregator doc:name="Group based aggregator" doc:id="37bf30ad-8358-4883-8a6b-8a152a9f744d" groupSize="#[vars.'collection-splitter0-group-size']" evictionTime="0" name="collection-splitter0-aggregator">
+				<aggregators:aggregation-complete >
+					<set-variable value="#[payload]" doc:name="Set Variable" doc:id="c7bb8b64-5524-4ef7-8cfd-9b99630a916d" variableName="collection-splitter0-aggregator-aggregation"/>
+				</aggregators:aggregation-complete>
+			</aggregators:group-based-aggregator>
+		</foreach>
+		<set-payload value="#[vars.'collection-splitter0-aggregator-aggregation']" doc:name="Set Payload" doc:id="32a60e4e-7d8a-423b-a9f3-0cd044bda95f" />
+		<ee:transform doc:name="Add Org Details" doc:id="4836f15f-c78e-40b5-bebf-c9f09c97b81c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+fun sumTotalActiveAPIs(val) =
+  ((sum(payload[?(($."type" == val))].totalActiveAPIs[?(($ > 0))])) default 0)
+var orgSandboxTotalActiveAPIs = sumTotalActiveAPIs("sandbox")
+var orgProductionTotalActiveAPIs = sumTotalActiveAPIs("production")
+---
+{
+  organization: {
+    name: vars.organizationName,
+    environments: payload
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Add API Status" doc:id="8a93aac3-b98c-443f-bf38-97647c2c8207" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "API contracts successfully retrieved for organization: " ++ vars.organizationName,
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID",
+    timestamp: now()
+  },
+  organization: payload.organization
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		
+	</sub-flow>
+	<sub-flow name="api-contracts-environmentlFlow" doc:id="17bc5977-cdbb-4d2e-819a-0c0e08a1f91b" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="authenticate-with-anypointSubFlow" />
+
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+
+        <flow-ref name="retrieve-environmentFlow" doc:name="Retrieve Environment ID" />
+
+        <choice doc:name="Does environment exist?">
+            <when expression="#[not isEmpty(payload)]">
+                <ee:transform doc:name="Set Environment ID" doc:id="af7cb5d9-4773-4c59-b44f-536bdf106b38">
+                    <ee:variables>
+                        <ee:set-variable variableName="environmentId"><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+---
+payload.envID]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+                <logger message="#[&quot;CID: $(vars.MULE_CORRELATION_ID) :: Environment Name: $(vars.environmentName) Environment ID: $(vars.environmentId)&quot;]" level="INFO" doc:name="Log Environment ID" />
+                <flow-ref name="retrieve-apis-and-associated-contractsFlow" doc:name="Retrieve APIs and Contracts" />
+                <ee:transform doc:name="Add API Status" doc:id="d9a55177-20d8-46b2-b869-ea3dfbe882b1">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+input payload application/java  
+output application/json  
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "API contracts successfully retrieved for environment: " ++ vars.environmentName ++ ".",
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID",
+    timestamp: now()
+  },
+  environment: payload
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <logger level="INFO" doc:name="Log Environment Not Found" message="#[&quot;CID: $(vars.MULE_CORRELATION_ID) :: Environment '$(vars.environmentName)' not found for organization '$(vars.organizationId)'.&quot;]" />
+				<raise-error doc:name="Raise error" doc:id="3dd21c19-e5c8-45f9-9b88-fc2a48583b49" type="ENV:NOT_FOUND" description="Environment Not Found"/>
+            </otherwise>
+        </choice>
+	</sub-flow>
+	<sub-flow name="retrieve-apis-and-associated-contractsFlow" doc:id="65ae39d6-594e-4964-99c7-17eacfb416bb" >
+		<flow-ref doc:name="retrieve-apis-for-contractsFlow" doc:id="a3c4bfd4-d30b-40df-aaff-62892d014e3b" name="retrieve-apis-for-contractsFlow"/>
+		<ee:transform doc:name="Set Contract APIs" doc:id="dec7f891-4db1-4b84-afff-2b3a8ece2a6c" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="contractAPIs" ><![CDATA[%dw 2.0
+output application/java
+---
+flatten(payload)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger message="#[&quot;CID: $(vars.MULE_CORRELATION_ID) :: Contract APIs: $(sizeOf(vars.contractAPIs))&quot;]" level="INFO" doc:name="Log Number of Contract APIs" />
+
+        <flow-ref name="retrieve-contractsFlow" doc:name="Retrieve Contracts" />
+
+        <ee:transform doc:name="Set Production Contracts">
+            <ee:variables>
+                <ee:set-variable variableName="apiContracts">%dw 2.0
+input payload application/java  
+output application/java  
+---
+flatten(payload)</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger message="#[vars.apiContracts]" level="INFO" doc:name="Log Contracts" />
+
+        <ee:transform doc:name="Merge Contracts and APIs">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+---
+vars.contractAPIs map (apiItem, apiIndex) -> {
+  assetId: apiItem.assetId,
+  assetVersion: apiItem.assetVersion,
+  activeContractsCount: apiItem.activeContractsCount,
+  contracts: flatten((vars.apiContracts filter ($.apiID == apiItem.id)).contracts)
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <ee:transform doc:name="Add Environment Information">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+fun calcReuse(apiList) =
+  (if (((sizeOf(apiList)) > 0))
+    (((sizeOf((apiList filter ($.activeContractsCount > 1)))) / (sizeOf(apiList))) as Number as String {format: "#,##0.0#%"})
+  else
+    "N/A")
+fun calcAvgConsumers(apiList) =
+  (if (((sizeOf(apiList)) > 0))
+    (((apiList.activeContractsCount reduce ($$ + $)) / (sizeOf(apiList))) as Number as String {format: "#0.00"})
+  else
+    "N/A")
+---
+{
+  name: vars.environmentName,
+  id: vars.environmentId,
+  reusePercentage: calcReuse(payload),
+  avgNumberOfConsumers: calcAvgConsumers(payload),
+  apiContracts: (payload orderBy (api) -> api.activeContractsCount)[-1 to 0]
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+	</sub-flow>
+	<sub-flow name="retrieve-apis-for-contractsFlow" doc:id="c7e34645-8f1f-45c7-9868-6e80e63d9e31" >
+		<set-variable value="${api.manager.API.version}" doc:name="API Version" doc:id="8f5a3597-9d8a-4456-a855-c4c985f818f7" variableName="apiVersion"/>
+		<set-variable value='#["/apimanager/api/" ++ vars.apiVersion ++ "/organizations/" ++ vars.organizationId ++ "/environments/" ++ vars.environmentId]' doc:name="Set BasePath" doc:id="bfa01724-6061-4ab3-9b26-78e1d3df22c5" variableName="basePath"/>
+		<http:request method="GET" doc:name="GET APIs for Contracts" doc:id="2169739a-5f55-4974-803b-2c90373243ff" config-ref="BasePath_HTTP_Request_Configuration" path="/apis">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Interpret Payload" doc:id="2d1e9012-ae80-490a-8c32-742e33a23bf8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="apisExist" ><![CDATA[%dw 2.0
+output application/java
+---
+(not payload == null) and ((sizeOf(payload)) > 0) and (not payload.assets == null) and ((sizeOf(payload.assets)) > 0)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Do APIs Exist?" doc:id="2e84269e-629a-4fa5-8710-e427d634a245" >
+			<when expression="#[vars.apisExist]">
+				<ee:transform doc:name="Extract APIs" doc:id="157a350f-f00e-47e2-b131-5bce067fc9af" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.assets map (assetItem, assetIndex) -> assetItem.apis map (apiItem, apiIndex) -> {
+    assetId: apiItem.assetId,
+    id: apiItem.id,
+    organizationId: apiItem.organizationId,
+    environmentId: apiItem.environmentId,
+    assetVersion: apiItem.assetVersion,
+    activeContractsCount: apiItem.activeContractsCount
+  }]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Log No APIs Found" doc:id="e764d33c-3d16-4818-a743-303071f42cc5" message='#["CID: $(vars.MULE_CORRELATION_ID) :: No APIs found for environment: $(vars.environmentId)"]'/>
+				<set-payload value="#[[[]]]" doc:name="Set Payload" doc:id="86b47db1-be31-42fa-b3cc-6031495d2776" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="retrieve-contractsFlow" doc:id="7e4d185e-540c-4772-8172-5984b25fb8fc" >
+		<ee:transform doc:name="Flatten List of  APIs" doc:id="d7175c3d-3bd3-47b1-ab0a-7ba6df9b2f91" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+flatten(vars.contractAPIs)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[sizeOf(payload)]" doc:name="Set Variable" doc:id="fd906557-f5e3-4b36-979d-91f34660f766" variableName="collection-contracts-flow"/>
+		<foreach doc:name="For Each" doc:id="1da10128-2c13-4303-a5f4-2e29564b2090" >
+			<ee:transform doc:name="Set API ID" doc:id="33b4f8a1-38f3-4b36-b385-8a9161d83e94" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="environmentAPIID" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.id]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<set-variable value="${api.manager.API.version}" doc:name="Set Variable" doc:id="85925577-efa8-45f2-ad61-544bed5b017b" variableName="apiVersion"/>
+			<set-variable value='#["/apimanager/api/" ++ vars.apiVersion ++ "/organizations/" ++ vars.organizationId ++ "/environments/" ++ vars.environmentId ++ "/apis/" ++ payload.id]' doc:name="Set BasePath" doc:id="0b904455-f841-4ccb-a32b-b7c82e6bbce1" variableName="basePath"/>
+			<http:request method="GET" doc:name="GET Contracts" doc:id="57736637-61b5-41e2-a1f4-ba91cf7213b9" config-ref="BasePath_HTTP_Request_Configuration" path="/contracts">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken
+}]]]></http:headers>
+			</http:request>
+			<aggregators:group-based-aggregator doc:name="Group based aggregator" doc:id="8ddc1ebf-f723-4ae2-9ca1-49d52ae7e13a" name="collection-splitter0-aggregator" evictionTime="0" groupSize="#[vars.'collection-contracts-flow']">
+				<aggregators:aggregation-complete >
+					<set-variable value="#[payload]" doc:name="Set Variable" doc:id="3706e56a-d14b-4ae5-bf15-b69f441d56a8" variableName="collection-splitter0-aggregator-aggregation"/>
+				</aggregators:aggregation-complete>
+			</aggregators:group-based-aggregator>
+		</foreach>
+		<set-payload value="#[vars.'collection-splitter0-aggregator-aggregation']" doc:name="Set Payload" doc:id="e6a31659-c890-44b9-badb-eb879c91ffd3" />
+	</sub-flow>
+</mule>

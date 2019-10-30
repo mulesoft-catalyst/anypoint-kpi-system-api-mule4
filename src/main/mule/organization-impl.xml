@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="organization-system-api-implFlow" doc:id="8e3d0782-94aa-47b7-94d7-1005001e7dbc" >
+		<flow-ref doc:name="authenticate-with-anypointSubFlow" doc:id="0e2a63de-5b17-49ee-94cc-8e13bf535c70" name="authenticate-with-anypointSubFlow"/>
+		<logger level="INFO" doc:name="Log Access Token" doc:id="8541b15f-4c49-4091-b4b2-7b95598df929" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]'/>
+		<flow-ref doc:name="lookup-organization-nameFlow" doc:id="93679381-7c9b-4920-a355-fb0634630b6d" name="lookup-organization-nameFlow"/>
+	</sub-flow>
+</mule>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-exchange-assetsFlow" doc:id="b2efbb20-0abf-4098-8cb9-72414c129e7c" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="Authenticate w/ Anypoint" />
+
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+
+        <flow-ref name="get-assetsFlow" doc:name="Get Assets" />
+	</sub-flow>
+	<sub-flow name="get-assetsFlow" doc:id="44a6acee-462f-4e65-b60e-414b199687a4" >
+		<set-variable value="${exchange.page.limit}" doc:name="Set Limit" doc:id="b62f89d7-e5b0-4b1e-bfaf-da1713380128" variableName="limit"/>
+		<ee:transform doc:name="Initialize Variables" doc:id="c8bdf13e-779d-4a3f-b114-7bf602f1b753" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="rootOrgId" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.organizationId]]></ee:set-variable>
+				<ee:set-variable variableName="limit" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.limit]]></ee:set-variable>
+				<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/java
+---
+0]]></ee:set-variable>
+				<ee:set-variable variableName="assetsList" ><![CDATA[%dw 2.0
+output application/java
+---
+[]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="GET EXCHANGE Pages" doc:id="0f91e878-4d3c-4697-9a1b-e7d041335a28" name="get-exchange-pagesFlow"/>
+		<ee:transform doc:name="Caclulate Number of Assets by Type" doc:id="d2f9fd05-535e-4798-8494-de266aff4f92" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java  
+var total = sizeOf(vars.assetsList)
+var assets = vars.assetsList
+---
+if (total > 0)
+  ({
+    total: total
+  } ++ (assets groupBy $."type" mapObject (v, k) -> {
+    ((k)) : sizeOf(v)
+  }))
+else
+  {}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Add API Status" doc:id="796babb1-6c1d-4259-bcb9-df75d970515a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+input payload application/java  
+output application/json  
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "Anypoint Exchange assets successfully retrieved.",
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID"
+  },
+  assets: vars.assetsList,
+  assetBreakdown: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get-exchange-pagesFlow" doc:id="b33a3cd3-4500-44ac-8ae3-cc397248a0c2" >
+		<logger level="INFO" doc:name="Log Offset and Limit" doc:id="19eae8e2-f32b-4309-bc84-10a02ccfcb25" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Get total exchange assets with offset: " ++ vars.offset ++ " and limit: " ++ vars.limit]'/>
+		<http:request method="GET" doc:name="GET Exchange Assets" doc:id="409a7e5a-baf2-47db-b5fe-34103c24f2da" config-ref="HTTP_Request_Configuration" path="/exchange/api/v1/assets">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	organizationId : vars.rootOrgId,
+	offset : vars.offset,
+	limit : vars.limit
+}]]]></http:query-params>
+		</http:request>
+		<choice doc:name="Successful Request?" doc:id="5a549811-cecb-41a0-a26a-e26f6d4ff984" >
+			<when expression="#[attributes.statusCode == 200]">
+				<ee:transform doc:name="Reduce Exchange Assets" doc:id="1379fe17-b2d0-40e2-863e-1e8b6f0c0f3f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+  assetId: $.assetId,
+  "type": $."type",
+  name: $.name,
+  status: $.status,
+  rating: $.rating,
+  numberOfRates: $.numberOfRates,
+  categories: flatten((if (((sizeOf($.categories)) > 0))
+    $.categories.value
+  else
+    []))
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Log Number of Assets in Response" doc:id="5d79d069-544b-4551-878e-b2d43159787f" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Number of Assets in Response: " ++ sizeOf(payload)]'/>
+				<ee:transform doc:name="Append Assets to List" doc:id="37d948b5-85ec-4e99-bf61-a45e0747c773" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="assetsList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.assetsList ++ payload]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Log Size of Assets List" doc:id="42953f45-0c4a-43b9-84c2-92e391d9f376" message='#["Size of Assets List " ++ sizeOf(vars.assetsList)]'/>
+				<choice doc:name="More Assets" doc:id="49d5f93f-075f-43ad-9977-d9d1c85c8b9f" >
+					<when expression="#[sizeOf(payload) &gt; 0]">
+						<ee:transform doc:name="Update Offset" doc:id="fcd56212-f719-4d13-ae58-f14a821c63cc" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.offset + vars.limit]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="get-exchange-pagesFlow" doc:id="a46cd7e7-0c5c-4fa9-81ea-004b6ce58264" name="get-exchange-pagesFlow"/>
+					</when>
+					<otherwise >
+						<logger level="DEBUG" doc:name="Do Nothing" doc:id="f251a788-c308-4550-b1a6-8dd02a11c108" />
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Unsuccessful Request" doc:id="f3f8da30-1ab7-4584-a4fd-7d6b0b2a93b0" message='#["Http status from getTotalAssets call: " ++ attributes.statusCode ++ " for OrgId: " ++ vars.rootOrgId ++ " ignoring for now"]'/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

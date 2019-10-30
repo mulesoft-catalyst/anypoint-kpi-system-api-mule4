@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd">
+	<sub-flow name="runtimeVersions-organizationFlow" doc:id="ad8e9dee-535c-4af6-a35c-d8fcffcd15cf" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="Authenticate w/ Anypoint" />
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+        <flow-ref doc:name="lookup-organization-nameFlow" doc:id="d7691372-4d1f-46c7-9dd8-da4aeac56656" name="lookup-organization-nameFlow"/>
+		<flow-ref doc:name="retrieve-environmentsFlow" doc:id="d83534d5-c295-476a-b583-02ea6958dde1" name="retrieve-environmentsFlow"/>
+		<set-variable value="#[sizeOf(payload)]" doc:name="Set Variable" doc:id="9910d904-9d51-402e-8677-fda22a4ef858" variableName="collection-splitter3-group-size"/>
+		<foreach doc:name="For Each" doc:id="638efed4-79b3-40e0-847a-2bf92a40eddd" >
+			<flow-ref doc:name="runtimeVersions-retrieveFlow" doc:id="e77c3ccf-b884-4219-8c59-60102da03891" name="runtimeVersions-retrieveFlow"/>
+			<aggregators:group-based-aggregator doc:name="Group based aggregator" doc:id="91f091f2-34ec-4012-a8aa-e0d3aed9b93f" evictionTime="0" groupSize="#[vars.'collection-splitter3-group-size']" name="collection-splitter3-aggregator">
+				<aggregators:aggregation-complete >
+					<set-variable value="#[payload]" doc:name="Set Variable" doc:id="c9dcbec0-1421-47e4-9cd9-c4204d31bb7b" variableName="collection-splitter3-aggregator-aggregation"/>
+				</aggregators:aggregation-complete>
+			</aggregators:group-based-aggregator>
+		</foreach>
+		<set-payload value="#[vars.'collection-splitter3-aggregator-aggregation']" doc:name="Set Payload" doc:id="79488d68-e76b-4980-b897-50d049c022db" />
+		<flow-ref doc:name="get-total-runtime-listFlow" doc:id="387bdde5-7fb8-4659-bdbe-9bed25bff4bb" name="get-total-runtime-listFlow"/>
+		<ee:transform doc:name="Add Organization Details" doc:id="2123daa6-2457-4d69-8ffa-9905e1629932" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	organization: {
+		name: vars.organizationName,
+		environments: payload,
+		totalApplications: sum(payload..applicationsUsing),
+		totalRuntimeVersions: vars.totalList
+	}	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Add API Status" doc:id="652194dc-9fa7-4a0f-961c-068889c40f06" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "Runtime versions successfully retrieved for organization: " ++ vars.organizationName ++ ".",
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID",
+    timestamp: now()
+  },
+  organization: payload.organization
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="runtimeVersions-environmentFlow" doc:id="ce3b89a2-7f1a-43c0-9eee-5567b1777de9" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="Authenticate w/ Anypoint" />
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+        <flow-ref doc:name="lookup-organization-nameFlow" doc:id="d069630f-6945-4ae0-b966-765cacf9a53a" name="lookup-organization-nameFlow"/>
+		<flow-ref doc:name="retrieve-environmentFlow" doc:id="72278bd1-6789-479f-8d40-38d60745b757" name="retrieve-environmentFlow"/>
+		<choice doc:name="Does Environment Exist?" doc:id="772fcf3e-de26-43a6-92ae-e75766916c61" >
+			<when expression="#[isEmpty(payload)]">
+				<logger level="INFO" doc:name="Log Environment Not Found" doc:id="bf89227a-2f77-4ad0-93d2-935b455ca44b" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Environment " ++ vars.environmentName ++ " not found."]'/>
+				<raise-error doc:name="Raise error" doc:id="af762019-0ee6-4174-be01-cd2595a763c7" type="ENV:NOT_FOUND" description="Environment Not Found"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="runtimeVersions-retrieveFlow" doc:id="832de8d9-b45a-42cf-b4eb-6f99a1c722da" name="runtimeVersions-retrieveFlow"/>
+				<ee:transform doc:name="Add API Status" doc:id="f277268b-d54a-4dd0-b18a-98e85cb57ea2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "Runtime Versions successfully retrieved for organization: " ++ vars.organizationName ++ " and environment: " ++ vars.environmentName ++ ".",
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID",
+    timestamp: now()
+  },
+  environment: payload,
+  totalApplications: sum(payload..applicationsUsing)
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="runtimeVersions-retrieveFlow" doc:id="96c45084-8667-41d1-8eac-445c4e9a4fb0" >
+		<set-variable value="#[payload]" doc:name="Set Current Environment Values" doc:id="12b6efa3-7a31-4deb-b6be-6a235db430f7" variableName="currentEnvironment"/>
+		<http:request method="GET" doc:name="Retrieve Applications by Environment" doc:id="b01c0f32-05ad-4694-9fb7-e98961d0a6c7" config-ref="HTTP_Request_Configuration" path="/cloudhub/api/v2/applications">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken,
+	"X-ANYPNT-ENV-ID" : payload.envID
+}]]]></http:headers>
+			
+		</http:request>
+		<flow-ref doc:name="runtimeVersions-extractFlow" doc:id="05513722-702b-42b3-a3ce-e168baa48baf" name="runtimeVersions-extractFlow"/>
+		<ee:transform doc:name="Add Environment Details" doc:id="faf86771-8067-4a2e-8db5-3416ef6b52d5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"id": vars.currentEnvironment.envID,
+	"name": vars.currentEnvironment.envName,
+	"type": vars.currentEnvironment.envType,
+	"runtimeVersions": payload 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="runtimeVersions-extractFlow" doc:id="08bdbbba-3eda-4141-9bc5-bb34d2af99dc" >
+		<ee:transform doc:name="Parse Runtime Versions Response" doc:id="379db45c-451f-41c6-a924-9aca99d5cb56" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	name: $.domain,
+	runtimeVersion: $.muleVersion.version
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Are Applications Deployed?" doc:id="bba66598-70c1-44b4-b65d-ef35c2ba7b53" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<ee:transform doc:name="Resolve Runtime Versions Used" doc:id="e8d8b734-2ce1-462a-88d9-c3a7933ec05c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.runtimeVersion distinctBy $) map (rtVersion, position) -> {
+  version: rtVersion,
+  applicationsUsing: sizeOf((payload filter ($.runtimeVersion == rtVersion)))
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Log 'No Applications'" doc:id="882dbd83-9cb5-49e3-903c-d54ff3e065cd" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: No applications deployed."]'/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="get-total-runtime-listFlow" doc:id="3683255e-3e06-4049-95b7-31d7d859bb45" >
+		<ee:transform doc:name="Get Runtime Application List" doc:id="2e4c0cdd-ca02-4dac-bfc7-c8493514f226" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="runtimeApplicationList" ><![CDATA[%dw 2.0
+output application/java
+---
+flatten(payload.*runtimeVersions)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Runtime Application List" doc:id="e1929542-0560-4041-ad92-2f43345dd172" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Runtime Application List.... "]'/>
+		<logger level="INFO" doc:name="Log List" doc:id="dbe70bc2-99a2-440e-a3f6-ab41b1c918c0" message='#[vars.runtimeApplicationList]'/>
+		<ee:transform doc:name="Get Runtime List" doc:id="2bbb86ac-9495-494c-a191-bd0d4f89c61a" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="runtimeList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.runtimeApplicationList.*version distinctBy $]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log List of Unique Runtimes" doc:id="92779659-aadb-4fdc-8c77-4996e4c3ac53" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Runtime List..... "]'/>
+		<logger level="INFO" doc:name="Log List" doc:id="5b7f5888-d61d-4363-889f-6b0599525e83" message="#[vars.runtimeList]"/>
+		<ee:transform doc:name="Get Total Runtimes" doc:id="7907e20c-8680-448c-8d28-80c4d733f48e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="totalList" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.runtimeList map (runtime, index) -> {
+  version: runtime,
+  applicationsUsing: ((vars.runtimeApplicationList filter $.version == runtime) map $.applicationsUsing) reduce ($$ + $)
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Total Runtimes" doc:id="4fd786be-8491-4537-b0fb-f580951a6781" message='#["CID: "  ++ vars.MULE_CORRELATION_ID ++ " :: Total List..... "]'/>
+		<logger level="INFO" doc:name="Log List" doc:id="d841f88a-9104-40d8-b3dc-aa230c0f3907" message="#[vars.totalList]"/>
+	</sub-flow>
+</mule>

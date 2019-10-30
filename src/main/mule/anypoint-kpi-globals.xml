@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="43edf99d-4d2b-4f70-95f9-994c40f174d0" file="anypoint-kpi-dev.properties" />
+	<api-gateway:autodiscovery apiId="${apiId}" doc:name="API Autodiscovery" doc:id="cd7f218c-cde5-49e5-9d2d-62e79afb4cb5" flowRef="anypoint-kpi-system-api-main" />
+	<http:request-config name="HTTP_Request_Configuration" doc:name="HTTP Request configuration" doc:id="4dc78305-5639-42ab-af42-5297e3608d97" >
+		<http:request-connection protocol="HTTPS" host="anypoint.mulesoft.com" port="443" />
+	</http:request-config>
+	<http:request-config name="BasePath_HTTP_Request_Configuration" doc:name="HTTP Request configuration" doc:id="32b5e919-184a-4267-a54f-2c8bb279aa18" basePath="#[vars.basePath]" >
+		<http:request-connection host="anypoint.mulesoft.com" port="443" protocol="HTTPS"/>
+	</http:request-config>
+	<sub-flow name="authenticate-with-anypointSubFlow" doc:id="e4c8d287-aa73-4afb-b0e4-3d5d7d53ca5f" >
+		<set-variable value="${username}" doc:name="Set Username" doc:id="051d9b3c-54ac-440f-9ec5-d300b6d84636" variableName="username"/>
+		<set-variable value="${password}" doc:name="Set Password" doc:id="dd36b4a9-e662-4658-8b4c-59b59656aca6" variableName="password"/>
+		<ee:transform doc:name="Set Credentials" doc:id="ad578f70-d7b8-43b3-90f5-90e2e0d545d7">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json  
+---
+{
+  username: vars.username,
+  password: vars.password
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<http:request method="POST" doc:name="Authenticate w/ Anypoint Platform" doc:id="5940939a-a18a-42e8-a4c4-d186aae075b6" config-ref="HTTP_Request_Configuration" path="/accounts/login">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Extract Bearer Token" doc:id="11db551c-1bdc-424e-9eaa-14c63f8979dd" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="bearerToken" ><![CDATA[%dw 2.0
+output application/java
+---
+"Bearer " ++ payload.access_token]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Bearer Token" doc:id="d92693d7-6b71-4fd1-998c-bbafdb49bad2" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Bearer Token: " ++ vars.bearerToken]'/>
+	</sub-flow>
+	<sub-flow name="lookup-organization-nameFlow" doc:id="89a29e43-b6c4-47da-9c60-29a75a4ef0a6" >
+		<logger level="INFO" doc:name="Log Organization ID" doc:id="036be97a-34d5-4b53-beee-1e5bb91e8f8a" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Organizaton ID: " ++ vars.organizationId]'/>
+		<set-variable value='#["/accounts/api/organizations/" ++ vars.organizationId]' doc:name="Set BasePath" doc:id="2ddb58e2-cca8-4a4b-a6dc-e20f015b3d58" variableName="basePath"/>
+		<http:request method="GET" doc:name="Get Organization Details" doc:id="ac4322f4-735a-4e76-bae1-58cfbea56cf7" config-ref="BasePath_HTTP_Request_Configuration" path="/">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken,
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Retrieve Organization Name" doc:id="195835f7-5e6c-424d-8c63-a9f810c4b895" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="organizationName" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Organization Name" doc:id="4205cd48-b9b6-487f-97c2-5d6fb98c79a4" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Organizaton Name: " ++ vars.organizationName]'/>
+	</sub-flow>
+	<sub-flow name="retrieve-environmentsFlow" doc:id="4aec0814-980d-4ebd-bdb5-7e238004f810" >
+		<set-variable value='#["/accounts/api/organizations/" ++ vars.organizationId]' doc:name="Set BasePath" doc:id="62e65ef2-f07d-4f43-8f08-53750935f3f0" variableName="basePath"/>
+		<http:request method="GET" doc:name="Retrieve Environments by Organization" doc:id="1f21a3a9-a8b3-4313-8098-087dc0acf7b9" config-ref="BasePath_HTTP_Request_Configuration" path="/environments">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Parse Environments" doc:id="7555cf66-66e2-49af-bf05-6f79ebefc24d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.data map {
+  envID: $.id,
+  envName: $.name,
+  envType: $."type"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="retrieve-environmentFlow" doc:id="78f9bfef-96d5-4d99-956d-f8d056a56535" >
+		<flow-ref doc:name="retrieve-environmentsFlow" doc:id="77e6e200-28fc-4d6f-8b97-b50d786cbb41" name="retrieve-environmentsFlow"/>
+		<ee:transform doc:name="Retrieve Environment">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+var env = (payload filter ($.envName == vars.environmentName))
+---
+if (((sizeOf(env)) > 0))
+  env[0]
+else
+  ""]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+	</sub-flow>
+</mule>

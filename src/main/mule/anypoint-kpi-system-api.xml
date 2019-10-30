@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="anypoint-kpi-system-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="anypoint-kpi-system-api-config" api="anypoint-kpi-system-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="anypoint-kpi-system-api-main">
+        <http:listener config-ref="anypoint-kpi-system-api-httpListenerConfig" path="/kpi/${api.version}/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[vars.errorMessage]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="Set Correlation ID" doc:id="bac4a136-1698-49fc-8acc-ef77f612fefb" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="MULE_CORRELATION_ID" ><![CDATA[%dw 2.0
+output application/java
+var correlationId = correlationId
+---
+if (attributes.headers.CORRELATION_ID != null)
+  (attributes.headers.CORRELATION_ID)
+else
+  (correlationId)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<apikit:router config-ref="anypoint-kpi-system-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="14c1a049-4e51-4dfe-a7fd-f09d6f77bdea">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="5745cffe-8b51-4ab2-8259-fe44ceae77b1">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="76038aaa-6ce5-4d47-84e4-ab81bfe98625">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="351323f3-6220-4d13-a2a7-d04a6de0557d">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="83e59f36-b3ec-4d02-9f25-90a76f1bd7a5">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="fe4e628f-fdfc-4e36-ab23-f590c993c259">
+                    <ee:message>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="556a3710-46fb-4135-88a8-3603e2adb0fb" type="ENV:NOT_FOUND">
+				<ee:transform doc:name="Transform Message" doc:id="62369996-e3bc-4287-87a9-9fcccc105afa" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Environment Not Found"}]]></ee:set-variable>
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7e9fe276-4b4c-4beb-91f1-59e28187fd56" type="APP:NOT_FOUND">
+				<ee:transform doc:name="Transform Message" doc:id="70d6aaac-884a-49c0-94da-472d2b013558" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Application Not Found"}]]></ee:set-variable>
+						<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8f5551b8-0f60-4426-ab6a-ac553a0bc471" type="HTTP:FORBIDDEN">
+				<ee:transform doc:name="Transform Message" doc:id="88ebef63-1ce1-4cc4-827a-fd1b275e9cf2" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Forbidden"}]]></ee:set-variable>
+						<ee:set-variable variableName="httpStatus" ><![CDATA[403]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="anypoint-kpi-system-api-console">
+        <http:listener config-ref="anypoint-kpi-system-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="anypoint-kpi-system-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\organization\(organizationId)\name:anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="c651c631-e7b6-436d-a53e-71ff6703ec07" doc:name="Save organizationId">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="organization-system-api-implFlow" doc:id="fb5fb5dd-897c-4678-9d5a-4994b19e160d" name="organization-system-api-implFlow"/>
+    </flow>
+    <flow name="get:\reuse\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="121de83f-3a97-476b-a3a1-5d12e27b3073">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+                <ee:set-variable variableName="environmentName"><![CDATA[attributes.uriParams.environmentName]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET Reuse Metrics - Environment" doc:id="01861e75-ae5d-45e7-a40f-ef4363bbdcfb" name="reuse-metrics-environmentlFlow"/>
+    </flow>
+    <flow name="get:\vCores\(organizationId)\(environmentName)\(applicationName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+                <ee:set-variable variableName="environmentName">attributes.uriParams.environmentName</ee:set-variable>
+                <ee:set-variable variableName="applicationName">attributes.uriParams.applicationName</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET vCores Used for Application" doc:id="69dcf32d-f2d8-4f98-a68c-4a4d7c8eeab5" name="vCores-used-applicationFlow"/>
+    </flow>
+    <flow name="get:\apis\versions\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+                <ee:set-variable variableName="environmentName">attributes.uriParams.environmentName</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET API Versions -  Environment" doc:id="702c9bdb-fc49-4fc3-8049-f211449b697d" name="api-versions-environmentFlow"/>
+    </flow>
+    <flow name="get:\runtimes\versions\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+                <ee:set-variable variableName="environmentName">attributes.uriParams.environmentName</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET Runtime Versions for Environment" doc:id="fc92efc4-197b-40fa-8b0c-2b3b6748dc9d" name="runtimeVersions-environmentFlow"/>
+    </flow>
+    <flow name="get:\applications\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="8a166339-c5fc-4ae1-9241-3a193507b9ae" doc:name="Save Variables">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+                <ee:set-variable variableName="environmentName"><![CDATA[attributes.uriParams.environmentName]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<flow-ref doc:name="activeApplications-environmentFlow" doc:id="ffee99ea-2509-4142-b777-ab358b93bda2" name="activeApplications-environmentFlow"/>
+    </flow>
+    <flow name="get:\vCores\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+                <ee:set-variable variableName="environmentName">attributes.uriParams.environmentName</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET vCores Used for Environment" doc:id="f4fdbad4-4354-4ed9-9bc5-e6e8e5145282" name="vCores-used-environmentFlow"/>
+    </flow>
+    <flow name="get:\apis\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="e53d92e8-291d-4e25-9645-ea8ca169a4a8" doc:name="Save Variables">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+                <ee:set-variable variableName="environmentName"><![CDATA[attributes.uriParams.environmentName]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET Active APIs for Environment" doc:id="acb323df-1730-4311-9dc0-56cc028653ac" name="activeAPIs-environmentFlow"/>
+    </flow>
+    <flow name="get:\exchange\assets\(organizationId)\ratings:anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="825e3e5b-e880-4acb-8c5e-34893283d775" doc:name="Save organizationId">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="get-exchange-assets-ratings" doc:id="f607207e-8230-4975-a3ed-058db8a93da9" name="get-exchange-assets-ratings"/>
+    </flow>
+    <flow name="get:\apis\contracts\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET API Contracts - Organization" doc:id="dec288d9-5f39-4d8e-a269-6951c51f7729" name="api-contracts-organizationFlow"/>
+    </flow>
+    <flow name="get:\exchange\assets\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="537ac3bc-1b15-4c50-9885-e9f397aeb87f" doc:name="Save organizationId">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<flow-ref doc:name="GET Exchange Assets" doc:id="0eb05a6d-f7fc-47de-8f82-55057aba7397" name="get-exchange-assetsFlow"/>
+    </flow>
+    <flow name="get:\apis\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="0462cd90-e40b-47e3-93fc-7c894c31a707" doc:name="Save organizationId">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="activeAPIs-organizationFlow" doc:id="5dd72a34-13af-4692-8c6b-c388053d4f75" name="activeAPIs-organizationFlow"/>
+    </flow>
+    <flow name="get:\apis\versions\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET API Versions - Organization" doc:id="9e039c86-beb4-4131-a8e3-26958bbfb9cd" name="api-versions-organizationFlow"/>
+    </flow>
+    <flow name="get:\applications\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="4b470b65-abb9-4a32-b38b-aa5066045223" doc:name="Save Variables">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<flow-ref doc:name="GET Active Applications for Organization" doc:id="80c6353c-e3ac-4164-80a1-278a46540401" name="activeApplications-organizationFlow"/>
+    </flow>
+    <flow name="get:\runtimes\versions\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET Runtime Versions for Organization" doc:id="37e28ff6-2a95-4679-8303-4cc80960b61e" name="runtimeVersions-organizationFlow"/>
+    </flow>
+    <flow name="get:\reuse\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET Reuse Metrics - Organization" doc:id="2c5f8d11-4f5a-482a-aa3d-90550da1f4bd" name="reuse-metrics-organizationFlow"/>
+    </flow>
+    <flow name="get:\vCores\(organizationId):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="35642e4c-4b30-4b1d-9671-713e9bfb3af2" doc:name="Save Variables">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId"><![CDATA[attributes.uriParams.organizationId]]></ee:set-variable>
+				<ee:set-variable variableName="acceptHeader" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.accept]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<logger level="INFO" doc:name="Log Accept Header" doc:id="73071e67-c9f7-43da-a423-46a772b38170" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Accept Header: " ++ vars.acceptHeader]'/>
+		<choice doc:name="Choice" doc:id="e6b65731-be57-484f-b956-e6ee8dcaa5b4" >
+			<when expression='#[vars.acceptHeader == "application/csv"]'>
+				<flow-ref doc:name="GET vCores Used for Organization - CSV" doc:id="427bfc51-de69-4b2f-b187-000d20a8f690" name="vcores-used-organization-csvFlow"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="GET vCores Used for Organization" doc:id="29af8305-73ac-4430-b637-33ce4aa01268" name="vCores-used-organizationFlow"/>
+			</otherwise>
+		</choice>
+    </flow>
+    <flow name="get:\apis\contracts\(organizationId)\(environmentName):anypoint-kpi-system-api-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="organizationId">attributes.uriParams.organizationId</ee:set-variable>
+                <ee:set-variable variableName="environmentName">attributes.uriParams.environmentName</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="GET API Contracts - Environment" doc:id="11a2e66a-8947-4c06-a777-0b7bff72ded4" name="api-contracts-environmentlFlow"/>
+    </flow>
+</mule>

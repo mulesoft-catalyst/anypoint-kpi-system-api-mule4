@@ -1,0 +1,43 @@
+#%RAML 1.0 NamedExample
+value:
+  apiStatus:
+    name: Anypoint KPI System API
+    status: OK
+    statusCode: "200"
+    description: API contracts successfully retrieved.
+    link: http://anypoint.kpi.system.api/200.html
+    transactionId: e77af5b0-9bf8-11e8-9002-c4b301c8ce19
+    timestamp: 2019-01-02T14:06:58.611-07:00
+  organization:
+    name: TheOrganization
+    environments:
+      - 
+        name: Production
+        id: 9fe156aa-5b63-450c-8e20-ad065dd12d80
+        reusePercentage: "14.29%"
+        avgNumberOfConsumers: "0.71"
+        mostConsumedAPIs:
+          - 
+            assetId: "access-token-provider-system-api"
+            assetVersion: "1.0.0"
+            activeContractsCount: 0
+            contracts: []
+          -
+            assetId: "address-api"
+            assetVersion: "2.0.0"
+            activeContractsCount: 0
+            contracts:
+              -
+                appName: "Address API Client"
+                appStatus: "REVOKED" 
+          -
+            assetId: "application-data-api"
+            assetVersion: "1.0.0"
+            activeContractsCount: 2
+            contracts:
+              -
+                appName: "Demo Consumer"
+                appStatus: "APPROVED"
+              -
+                appName: "Application Data API Client"
+                appStatus: "APPROVED"

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd">
+	<sub-flow name="activeApplications-organizationFlow" doc:id="8f8074d1-403a-4fee-9311-77714aecef32" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="Authenticate w/ Anypoint" />
+
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+		<flow-ref doc:name="lookup-organization-nameFlow" doc:id="2b27acd0-3226-4b2f-9caa-0e20c9d3c7d3" name="lookup-organization-nameFlow"/>
+		<flow-ref doc:name="retrieve-environmentsFlow" doc:id="54467051-af76-4099-af22-62fd9d476871" name="retrieve-environmentsFlow"/>
+		<set-variable value="#[sizeOf(payload)]" doc:name="collection-splitter7-group-size" doc:id="5042bf23-e6ec-4b07-a5f2-adf1e2547beb" variableName="collection-splitter7-group-size"/>
+		<foreach doc:name="For Each" doc:id="73d2b61b-bd5f-4bcd-b499-20deddc798a7" >
+			<flow-ref doc:name="applications-retrieveFlow" doc:id="ba5b70b5-be26-49b5-84f7-ff0e0ac5d578" name="applications-retrieveFlow"/>
+			<aggregators:group-based-aggregator doc:name="Aggregate" doc:id="b51ba8eb-ce81-48d9-8f0b-14823e200032" name="collection-splitter7-aggregator" groupSize="#[vars.'collection-splitter7-group-size']" evictionTime="0">
+				<aggregators:aggregation-complete >
+					<set-variable value="#[payload]" doc:name="Set Variable" doc:id="569e3a66-bc0b-4b77-83d7-7789d73e39b3" variableName="collection-splitter7-aggregator-aggregation"/>
+				</aggregators:aggregation-complete>
+			</aggregators:group-based-aggregator>
+		</foreach>
+		<set-payload value="#[vars.'collection-splitter7-aggregator-aggregation']" doc:name="Set Payload" doc:id="42063847-e22c-41fe-b8fe-47078de42e16" />
+				<ee:transform doc:name="Add Organization Details" doc:id="6ac08754-6a80-44d8-8969-b87952b331f5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+fun sumTotalActiveAPIs(val) =
+  ((sum(payload[?(($."type" == val))].totalActiveAPIs[?(($ > 0))])) default 0)
+var orgSandboxTotalActiveAPIs = sumTotalActiveAPIs("sandbox")
+var orgProductionTotalActiveAPIs = sumTotalActiveAPIs("production")
+---
+{
+  organization: {
+    name: vars.organizationName,
+    environments: payload,
+    totalActiveAPIsSandbox: orgSandboxTotalActiveAPIs as String {format: "#"},
+    totalActiveAPIsProduction: orgProductionTotalActiveAPIs as String {format: "#"}
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Total Active APIs" doc:id="a7fccc04-8668-4275-94dd-e32733530f7c" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Total Sandbox Active APIs: " ++ payload.organization.totalActiveAPIsSandbox ++ " Total Production Active APIs: " ++ payload.organization.totalActiveAPIsProduction]'/>
+		<ee:transform doc:name="Add API Status" doc:id="d271f437-84e7-41a1-b270-b2e0627d942f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "Active APIs successfully retrieved for organization: " ++ vars.organizationName,
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID",
+    timestamp: now()
+  },
+  organization: payload.organization
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="activeApplications-environmentFlow" doc:id="18d1e852-03f5-4701-86ed-c66b091a0ee1" >
+		<flow-ref name="authenticate-with-anypointSubFlow" doc:name="Authenticate w/ Anypoint" />
+
+        <logger message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Access Token: " ++ vars.bearerToken]' level="INFO" doc:name="Log Access Token" />
+		<flow-ref doc:name="lookup-organization-nameFlow" doc:id="a4fa72e3-5315-4e67-a694-2ac6cfaea61d" name="lookup-organization-nameFlow"/>
+		<flow-ref doc:name="retrieve-environmentFlow" doc:id="bfbeb6ba-d94c-4b69-9bd8-4dfae2125689" name="retrieve-environmentFlow"/>
+		<choice doc:name="Does environment exist?" doc:id="0a1e3301-cf5e-4fd9-bd4b-51a5c23b529d" >
+			<when expression="#[isEmpty(payload)]">
+				<logger level="INFO" doc:name="Log Environment Not Found" doc:id="456e72e2-85a9-4dde-b748-172c91bd42a0" message='#["CID: " ++ vars.MULE_CORRELATION_ID ++ " :: Environment " ++ vars.environmentName ++ " not found."]'/>
+				<raise-error doc:name="Raise error" doc:id="5bcbbf3e-672a-49eb-9c20-1011bc98ab5f" type="ENV:NOT_FOUND" description="Environment Not Found"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="applications-retrieveFlow" doc:id="f0678cf1-ae75-4b17-8f07-a29132d4a752" name="applications-retrieveFlow"/>
+				<ee:transform doc:name="Add API Status" doc:id="90132a61-a89e-47ca-89b2-dfeb26b69232" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json  
+---
+{
+  apiStatus: {
+    name: "Anypoint KPI System API",
+    status: "OK",
+    statusCode: "200",
+    description: "Active applications successfully retrieved for organization: " ++ vars.organizationName ++ " and environment: " ++ vars.environmentName,
+    link: "http://anypoint.kpi.system.api/200.html",
+    transactionId: vars."MULE_CORRELATION_ID",
+    timestamp: now()
+  },
+  environment: payload
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="applications-retrieveFlow" doc:id="0e4f201a-8ce1-4fcd-970f-6935b3653de9" >
+		<set-variable variableName="currentEnvironment" value="#[payload]" doc:name="Set Current Environment Values" />
+
+        <http:request config-ref="HTTP_Request_Configuration" path="/cloudhub/api/v2/applications" method="GET" doc:name="Retrieve Applications by Environment">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	Authorization : vars.bearerToken,
+	"X-ANYPNT-ENV-ID" : payload.envID,
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+        </http:request>
+
+        <ee:transform doc:name="Parse Applications" doc:id="d018343d-e02a-4d19-accc-496e4c74cf80">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+input payload application/json  
+output application/java  
+---
+{
+  apps: payload filter ($.status == "STARTED") map {
+    name: $.domain,
+    workerSize: $.workers."type".weight,
+    workers: $.workers.amount,
+    totalVCores: $.workers."type".weight * $.workers.amount,
+    runtimeVersion: $.muleVersion.version,
+    status: $.status
+  }
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+        <ee:transform doc:name="Add Environment Details" doc:id="8ae7d7ea-f7e4-49cb-b72b-a2a2f30f33ce">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+input payload application/java  
+output application/java  
+fun sumTotalVCores() =
+  ((sum(payload.apps.totalVCores[?(($ > 0))])) default 0)
+var envTotalVCores = sumTotalVCores()
+---
+{
+  id: vars.currentEnvironment.envID,
+  name: vars.currentEnvironment.envName,
+  "type": vars.currentEnvironment.envType,
+  applications: payload.apps,
+  totalActiveApplications: (sizeOf(payload.apps)),
+  totalVCores: envTotalVCores as String {format: "#.#"}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+	</sub-flow>
+	<sub-flow name="applications-extractFlow" doc:id="69b64c0a-5b8c-43b7-bcf5-f2a842e22532" >
+		<ee:transform doc:name="Parse Applications" doc:id="6cbbdc56-7179-49a8-835b-8ba718e9c580" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+  api: payload filter ($.status == "STARTED") map {
+    name: $.domain,
+    workerSize: $.workers."type".weight,
+    workers: $.workers.amount,
+    runtimeVersion: $.muleVersion.version
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

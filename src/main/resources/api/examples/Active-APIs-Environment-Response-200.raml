@@ -1,0 +1,35 @@
+#%RAML 1.0 NamedExample
+value:
+  apiStatus:
+    name: Anypoint KPI System API
+    status: OK
+    statusCode: "200"
+    description: Environment successfully retrieved.
+    link: http://anypoint.kpi.system.api/200.html
+    transactionId: e77af5b0-9bf8-11e8-9002-c4b301c8ce19
+    timestamp: 2019-01-02T14:06:58.611-07:00
+  environment: 
+    name: Development
+    apis:
+      system:
+        - 
+          name: one-system-api
+          workerSize: 0.1
+          workers: 2
+          runtimeVersion: 4.2.1
+      process:
+        -
+          name: one-process-api
+          workerSize: 0.2
+          workers: 2
+          runtimeVersion: 3.9.1
+      experience:
+        -
+          name: one-experience-api
+          workerSize: 1
+          workers: 4
+          runtimeVersion: 3.8.7
+    totalActiveAPIs: 3
+    activeSystemAPIs: 1
+    activeProcessAPIs: 1
+    activeExperienceAPIs: 1

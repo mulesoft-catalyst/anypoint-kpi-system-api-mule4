@@ -1,0 +1,71 @@
+#%RAML 1.0 NamedExample
+value:
+  apiStatus:
+    name: Anypoint KPI System API
+    status: OK
+    statusCode: "200"
+    description: Organization successfully retrieved.
+    link: http://anypoint.kpi.system.api/200.html
+    transactionId: e77af5b0-9bf8-11e8-9002-c4b301c8ce19
+    timestamp: 2019-01-02T14:06:58.611-07:00
+  organization:
+    name: TheOrganization
+    environments: 
+      - 
+        id: 3b68677b-45f8-456b-bbd6-8edff859d1f9,
+        name: Development
+        type: sandbox
+        applications:
+          - 
+            name: ApplicationOne
+            workerSize: 0.1
+            workers: 2
+            totalVCores: 0.2
+            runtimeVersion: 4.2.1
+            status: STARTED
+          -
+            name: ApplicationTwo
+            workerSize: 0.2
+            workers: 2
+            totalVCores: 0.4
+            runtimeVersion: 3.9.1
+            status: STARTED
+          -
+            name: ApplicationThree
+            workerSize: 1
+            workers: 4
+            totalVCores: 4
+            runtimeVersion: 3.8.7
+            status: STARTED
+        totalActiveApplications: 3
+        totalVCores: 4.6
+      - 
+        id: 3b68677b-45f8-456b-bbd6-8edff859d1f9,
+        name: Production
+        type: production
+        applications:
+          - 
+            name: ApplicationOne
+            workerSize: 0.1
+            workers: 2
+            totalVCores: 0.2
+            runtimeVersion: 4.2.1
+            status: STARTED
+          -
+            name: ApplicationTwo
+            workerSize: 0.2
+            workers: 2
+            totalVCores: 0.4
+            runtimeVersion: 3.9.1
+            status: STARTED
+          -
+            name: ApplicationThree
+            workerSize: 1
+            workers: 4
+            totalVCores: 4
+            runtimeVersion: 3.8.7
+            status: STARTED
+        totalActiveApplications: 3
+        totalVCores: 4.6
+    totalVCoresSandbox: 4.6
+    totalVCoresProduction: 4.6

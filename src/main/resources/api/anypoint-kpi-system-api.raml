@@ -1,0 +1,802 @@
+#%RAML 1.0
+title: Anypoint KPI System API
+version: 1.0.0
+
+#mediaType: [application/json, application/xml, application/yaml, text/plain, application/csv]
+#mediaType: [application/json]
+
+baseUri: https://mocksvc.mulesoft.com/mocks/70bd6ec2-594e-4de4-b3cf-b6ef1f7952e1/kpi 
+# baseUri: http://localhost:8081/kpi
+
+traits:
+  client-id-required:
+    queryParameters:
+      client_id:
+        type: string
+      client_secret:
+        type: string
+  error-codes-support:
+    responses:
+        400:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-400.raml
+        401:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-401.raml
+        403:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-403.raml
+        404:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-404.raml
+        500:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-500.raml
+        502:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-502.raml
+        504:
+          body:
+            application/json:
+              type: APIStatus-Response
+              example: !include examples/API-Status-Response-504.raml
+
+
+types:
+# API Status
+  APIStatus: !include datatypes/APIStatus.raml
+  
+# Active APIs
+  API:
+    description: A list of attributes associated with the API.
+    type: object
+    properties:
+      name:
+        description: The name of the API.
+        type: string
+      workerSize:
+        description: The size of the worker for the API.
+        type: number
+      workers:
+        description: The number of workers hosting the API.
+        type: number
+      runtimeVersion?:
+        description: The version of the Mule runtime hosting the API.
+        type: string
+  API-Breakdown:
+    type: object
+    description: Provides a breakdown of APIs based on System, Process and Experience.
+    properties:
+      system:
+        description: A list of System APIs.
+        type: API[]
+      process:
+        description: A list of Process APIs.
+        type: API[]
+      experience:
+        description: A list of Experience APIs.
+        type: API[]
+  Active-APIs-Environment:
+    type: object
+    properties:
+      name:
+        description: The name of the environment.
+        type: string
+      apis?:
+        description: The APIs deployed to the environment.
+        type: API-Breakdown
+      totalActiveAPIs:
+        description: The total number of active APIs within the environment.
+        type: number
+      activeSystemAPIs:
+        description: The total number of active System APIs within the environment.
+        type: number
+      activeProcessAPIs:
+        description: The total number of active Process APIs within the environment.
+        type: number
+      activeExperienceAPIs:
+        description: The total number of active Experience APIs within the environment.
+        type: number
+  Active-APIs-Organization:
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments deployed to the organization.
+        type: Active-APIs-Environment[]
+      totalActiveAPIs:
+        description: The total number of active APIs provided by the organization.
+        type: number
+
+
+# Active Applications
+  Application:
+    description: A list of attributes associated with the application.
+    type: object
+    properties:
+      name:
+        description: This name of the application.
+        type: string
+      workerSize:
+        description: The size of the worker for the application.
+        type: number
+      workers:
+        description: The number of workers hosting the application.
+        type: number
+      runtimeVersion?:
+        description: The version of the Mule runtime hosting the application.
+        type: string
+  Active-Applications-Environment:
+    type: object
+    properties:
+      name:
+        description: The name of the environment.
+        type: string
+      apis?:
+        description: The applications deployed to the environment.
+        type: Application[]
+      totalActiveApplications:
+        description: The total number of active applications within the environment.
+        type: number
+  Active-Applications-Organization:
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments deployed to the organization.
+        type: Active-Applications-Environment[]
+      totalActiveApplications:
+        description: The total number of active applications provided by the organization.
+        type: number
+        
+# API Contracts
+  Contract:
+    type: object
+    properties:
+      appName: string
+      appStatus: string
+  API-Contract: 
+    type: object
+    properties:
+      assetId: string
+      id: number
+      organizationId: string
+      environmentId: string
+      assetVersion: string
+      activeContractsCount: number
+      contracts: Contract[]
+  API-Contracts-Environment:
+    type: object
+    properties:
+      name: string
+      id: string
+      reusePercentage: string
+      avgNumberOfConsumers: string
+      apiContracts: API-Contract[]
+  API-Contracts-Organization:
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments deployed to the organization.
+        type: API-Contracts-Environment[]
+
+# API Versions
+  API-Versions: 
+    type: object
+    properties:
+      assetId: string
+      id: number
+      organizationId: string
+      environmentId: string
+      versions: string[]
+  API-Versions-Environment:
+    type: object
+    properties:
+      name: string
+      id: string
+      moreThanOneVersionPercentage: string
+      avgNumberOfVersions: string
+      apis: API-Versions[]
+  API-Versions-Organization:
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments deployed to the organization.
+        type: API-Versions-Environment[]
+      
+# Exchange Assets
+  Exchange-Asset:
+    type: object
+    properties:
+      assetId: 
+        description: Exchange ID of the asset.
+        type: string
+      type:
+        description: The type of asset.
+        type: string
+      name:
+        description: The human-readable name of the asset.
+        type: string
+      status: 
+        description: The status of the asset.
+        type: string
+      rating:
+        description: The current rating of the asset.
+        type: number
+      numberOfRates:
+        description: The number of rates given to the asset.
+        type: number
+  Exchange-Asset-Breakdown:
+    type: object
+    properties:
+      total: 
+        description: Total number of Exchange assets.
+        type: number
+      api-spec-fragment?: 
+        description: Total number of Exchange API Spec Fragment assets.
+        type: number
+      connector?:
+        description: Total number of Exchange Connector assets.
+        type: number
+      custom?:
+        description: Total number of Exchange Custom assets.
+        type: number
+      example?:
+        description: Total number of Exchange Example assets.
+        type: number
+      http-api?: 
+        description: Total number of Exchange HTTP API assets.
+        type: number
+      rest-api?: 
+        description: Total number of Exchange ReST API assets.
+        type: number
+      soap-api?: 
+        description: Total number of Exchange SOAP API assets.
+        type: number
+      template?: 
+        description: Total number of Exchange Template assets.
+        type: number      
+        
+# Exchange Asset Ratings
+  Exchange-Asset-Type:
+    type: object
+    properties:
+      api-spec-fragment?: 
+        description: Total number of Exchange API Spec Fragment assets.
+        type: number
+      connector?:
+        description: Total number of Exchange Connector assets.
+        type: number
+      custom?:
+        description: Total number of Exchange Custom assets.
+        type: number
+      example?:
+        description: Total number of Exchange Example assets.
+        type: number
+      http-api?: 
+        description: Total number of Exchange HTTP API assets.
+        type: number
+      rest-api?: 
+        description: Total number of Exchange ReST API assets.
+        type: number
+      soap-api?: 
+        description: Total number of Exchange SOAP API assets.
+        type: number
+      template?: 
+        description: Total number of Exchange Template assets.
+        type: number
+  Exchange-Assets-Ratings:
+    type: object
+    properties:
+      lessThanTwoFive?: 
+        description: Number of Exchange assets rated less than 2.5.
+        type: Exchange-Asset-Type
+      twoFiveToThreeFive?: 
+        description: Number of Exchange assets rated greater than 2.5 and less than 3.5.
+        type: Exchange-Asset-Type
+      threeFiveToFour?:
+        description: Number of Exchange assets rated greater than 3.5 and less than 4.0.
+        type: Exchange-Asset-Type
+      fourToFourFive?:
+        description: Number of Exchange assets rated greater than 4.0 and less than 4.5.
+        type: Exchange-Asset-Type
+      greaterThanFourFive?:
+        description: Number of Exchange assets rated greater than 4.5.
+        type: Exchange-Asset-Type
+
+# Reuse Metrics
+  Reuse-Metrics-API-Contract: 
+    type: object
+    properties:
+      assetId: string
+      assetVersion: string
+      activeContractsCount: number
+      contracts: Contract[]
+  Reuse-Metrics-Environment:
+    type: object
+    properties:
+      name: string
+      id: string
+      reusePercentage: string
+      avgNumberOfConsumers: string
+      mostConsumedAPIs: Reuse-Metrics-API-Contract[]
+  Reuse-Metrics-Organization:
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments created within the organization.
+        type: Reuse-Metrics-Environment[]
+        
+# Runtime Versions
+  Runtime-Version:
+    description: A runtime version with the number of applications using the version.
+    type: object
+    properties:
+      version:
+        description: Runtime version.
+        type: string
+      applicationsUsing:
+        description: The number of applications using the runtime.
+        type: number
+  Runtime-Versions-Environment:
+    properties:
+      id:
+        description: The ID of the environment.
+        type: string
+      name:
+        description: The name of the environment.
+        type: string
+      type:
+        description: Sandbox/Production?
+        type: string
+      runtimeVersions?:
+        description: The runtime versions used by the environment.
+        type: Runtime-Version[]
+  Runtime-Versions-Organization: 
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments defined within the organization.
+        type: Runtime-Versions-Environment[]
+
+# vCores Used
+  vCores-Application:
+    type: object
+    properties:
+      name:
+        description: This name of the application.
+        type: string
+      workerSize:
+        description: The size of the worker for the application.
+        type: number
+      workers:
+        description: The number of workers hosting the application.
+        type: number
+      totalVCores:
+        description: The total number of vCores consumed by the application.
+        type: number
+      runtimeVersion?:
+        description: The version of the Mule runtime hosting the application.
+        type: string
+      status: 
+        description: The current operating status of the application.
+        type: string
+  vCores-Environment:
+    type: object
+    properties:
+      name:
+        description: The name of the environment.
+        type: string
+      applications?:  
+        description: The applications deployed to the environment.
+        type: vCores-Application[]
+      totalActiveApplications:
+        description: The total number of active applications deployed to the environment.
+        type: number
+      totalVCores:
+        description: The total number of vCores consumed by the environment.
+        type: number
+  vCores-Organization:
+    type: object
+    properties:
+      name:
+        description: The name of the organization.
+        type: string
+      environments?:
+        description: The environments within to the organization.
+        type: vCores-Environment[]
+      totalVCoresSandbox:
+        description: The total number of sandbox vCores consumed by the organization.
+        type: number
+      totalVCoresProduction: 
+        description: The total number of production vCores consumed by the organization.
+        type: number
+
+# Responses
+  APIStatus-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+  Active-APIs-Organization-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      organization: Active-APIs-Organization
+  Active-APIs-Environment-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      environment: Active-APIs-Environment
+  API-Contracts-Environment-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      environment: API-Contracts-Environment 
+  API-Contracts-Organization-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      organization: API-Contracts-Organization 
+  API-Versions-Environment-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      environment: API-Versions-Environment 
+  API-Versions-Organization-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      organization: API-Versions-Organization 
+  Exchange-Assets-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      assets: Exchange-Asset[]
+      assetBreakdown: Exchange-Asset-Breakdown   
+  Exchange-Assets-Ratings-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      assets: Exchange-Asset[]
+      assetRatings: Exchange-Assets-Ratings
+  Organization-Name-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      organizationName: string
+  Reuse-Metrics-Environment-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      environment: Reuse-Metrics-Environment 
+  Reuse-Metrics-Organization-Response:
+    type: object
+    properties:
+      apiStatus: APIStatus
+      organization: Reuse-Metrics-Organization
+  Runtime-Versions-Organization-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      organization: Runtime-Versions-Organization
+      totalApplications:
+       description: The total number of applications in the organization.
+       type: number
+      totalRuntimeVersions:
+        description: The runtime versions used by the organization.
+        type: Runtime-Version[]
+  Runtime-Versions-Environment-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      environment: Runtime-Versions-Environment
+      totalApplications:
+       description: The total number of applications in the organization.
+       type: number
+  vCores-Organization-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      organization: vCores-Organization
+  vCores-Environment-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      environment: vCores-Environment  
+  vCores-Application-Response:
+    type: object
+    properties: 
+      apiStatus: APIStatus
+      application: vCores-Application
+      totalVCores: 
+        description: The total number of vCores consumed by the application.
+        type: number
+
+# Applications      
+/applications:
+  displayName: Applications
+  description: Retrieves the applications deployed to the Anypoint Platform.
+  /{organizationId}:
+    is: [client-id-required, error-codes-support]
+    displayName: ID of the Organization.
+    get:
+      description: Retrieves the active applications of the specified organization.
+      displayName: The active applications of the specified organization.
+      responses:
+        200:
+          body: 
+            application/json:
+              type: Active-APIs-Organization-Response
+              example: !include examples/Active-APIs-Organization-Response-200.raml
+    /{environmentName}:
+      is: [client-id-required, error-codes-support]
+      displayName: Environment
+      get:
+        description: Retrieves the active APIs by environment.
+        displayName: The active APIs by environment.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Active-APIs-Environment-Response
+                example: !include examples/Active-APIs-Environment-Response-200.raml
+
+# APIs                
+/apis:
+  displayName: APIs
+  description: Retrieves the APIs deployed to the Anypoint Platform.
+  /{organizationId}:
+    is: [client-id-required, error-codes-support]
+    displayName: ID of client organization.
+    get:
+      description: Retrieves the active APIs of the organization.
+      displayName: The active APIs of organization.
+      responses:
+        200:
+          body: 
+            application/json:
+              type: Active-APIs-Organization-Response
+              example: !include examples/Active-APIs-Organization-Response-200.raml
+    /{environmentName}:
+      is: [client-id-required, error-codes-support]
+      displayName: Environment
+      get:
+        description: Retrieves the active APIs by environment.
+        displayName: The active APIs by environment.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Active-APIs-Environment-Response
+                example: !include examples/Active-APIs-Environment-Response-200.raml
+  # API Contracts
+  /contracts:
+    is: [client-id-required, error-codes-support]
+    displayName: API Contracts
+    /{organizationId}:
+      displayName: ID of Organization.
+      get:
+        description: Retrieves the API contracts for the organization.
+        displayName: The contracts per API for the entire organization.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: API-Contracts-Organization-Response
+                example: !include examples/API-Contracts-Organization-Response-200.raml
+      /{environmentName}: 
+        displayName: Name of an environment within the organization.
+        get:
+          description: Retrieves the API contracts for an environment within the organization.
+          displayName: The contracts per API for an environment within the organization.
+          responses:
+            200:
+              body: 
+                application/json:
+                  type: API-Contracts-Environment-Response
+                  example: !include examples/API-Contracts-Environment-Response-200.raml
+  # APIs - Versions
+  /versions:
+    displayName: API Versions
+    description: Retrieves the API versions deployed to the Anypoint Platform.
+    /{organizationId}:
+      is: [client-id-required, error-codes-support]
+      displayName: ID of client organization.
+      get:
+        description: Retrieves the number of API versions for each API in the organization.
+        displayName: The number of API versions for each API in the organization.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: API-Versions-Organization-Response
+                example: !include examples/API-Versions-Organization-Response-200.raml
+      /{environmentName}:
+        is: [client-id-required, error-codes-support]
+        displayName: Environment
+        get:
+          description: Retrieves the number of API versions for each API in the environment.
+          displayName: The number of API versions for each API in the environment.
+          responses:
+            200:
+              body: 
+                application/json:
+                  type: API-Versions-Environment-Response
+                  example: !include examples/API-Versions-Environment-Response-200.raml
+
+# Exchange Assets
+/exchange:
+  /assets:
+    displayName: Exchange Assets
+    description: Retrieves the assets in Exchange.
+    /{organizationId}:
+      displayName: ID of Organization containing Exchange Assets.
+      is: [client-id-required, error-codes-support]
+      get:
+        description: Retrieves all assets in Anypoint Exchange.
+        displayName: All assets in Anypoint Exchange.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Exchange-Assets-Response
+                example: !include examples/Exchange-Assets-Response-200.raml
+      /ratings:
+        displayName: Exchange Asset Ratings
+        description: Retrieves the asset ratings Exchange.
+        is: [client-id-required, error-codes-support]
+        get:
+          description: Retrieves all asset ratings in the Anypoint Exchange.
+          displayName: All asset ratings in Anypoint Exchange.
+          responses:
+            200:
+              body: 
+                application/json:
+                  type: Exchange-Assets-Ratings-Response
+                  example: !include examples/Exchange-Assets-Ratings-Response-200.raml
+   
+# Organization
+/organization:
+  displayName: Organization
+  description: Retrieves the current organization information.
+  /{organizationId}:
+    displayName: ID of the organization.
+    /name:
+      is: [client-id-required, error-codes-support]
+      get:
+        description: Retrieves the name of the organization from the organization ID.
+        displayName: Organization name.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Organization-Name-Response
+                example: !include examples/Organization-Name-Response-200.raml
+# Reuse
+/reuse:
+  displayName: Reuse calculation.
+  description: Calculates various reuse metrics for existing APIs.
+  /{organizationId}:
+    displayName: ID of the organization.
+    is: [client-id-required, error-codes-support]
+    get:
+      description: Retrieves the reuse metrics for each environment in the organization.
+      displayName: Reuse metrics for each environment in the organization.
+      responses:
+        200:
+          body: 
+            application/json:
+              type: Reuse-Metrics-Organization-Response
+              example: !include examples/Reuse-Metrics-Organization-Response-200.raml
+    /{environmentName}:
+      is: [client-id-required, error-codes-support]
+      get:
+        description: Retrieves the reuse metrics for the environment.
+        displayName: Reuse metrics for the environment.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Reuse-Metrics-Environment-Response
+                example: !include examples/Reuse-Metrics-Environment-Response-200.raml
+
+#Runtime Versions                
+/runtimes/versions:
+  displayName: Runtime Versions
+  description: Retrieves the runtime versions used by the applications.
+  /{organizationId}:
+    is: [client-id-required, error-codes-support]
+    displayName: ID of the organization.
+    get:
+        description: Retrieves the runtime versions used by the organization.
+        displayName: The runtime versions used by the organization.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Runtime-Versions-Organization-Response
+                example: !include examples/Runtime-Versions-Used-Organization-Response-200.raml
+    /{environmentName}:
+      is: [client-id-required, error-codes-support]
+      displayName: Environment
+      get:
+        description: Retrieves the runtime versions used by the environment.
+        displayName: The runtime versions used by the environment.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: Runtime-Versions-Environment-Response
+                example: !include examples/Runtime-Versions-Used-Environment-Response-200.raml
+
+# vCores
+/vCores:
+  displayName: vCores
+  description: Retrieves the vCore count for a given level.
+  /{organizationId}:
+    is: [client-id-required, error-codes-support]
+    displayName: ID of the organization.
+    get:
+      description: Retrieves the vCore totals for the organization.
+      displayName: vCores consumed by the organization.
+      responses:
+        200:
+          body: 
+            application/json:
+              type: vCores-Organization-Response
+              example: !include examples/vCores-Organization-Response-200.raml
+            application/csv:
+              type: string[]
+              example: !include examples/vCores-Organization-CSV-Response-200.raml
+    /{environmentName}:
+      is: [client-id-required, error-codes-support]
+      displayName: Environment
+      get:
+        description: Retrieves the vCore totals for an environment.
+        displayName: vCores consumed by the environment.
+        responses:
+          200:
+            body: 
+              application/json:
+                type: vCores-Environment-Response
+                example: !include examples/vCores-Environment-Response-200.raml
+      /{applicationName}:
+        is: [client-id-required, error-codes-support]
+        displayName: Application
+        get:
+          description: Retrieves the vCore totals for the application.
+          displayName: vCores consumed by the application.
+          responses:
+            200:
+              body: 
+                application/json:
+                  type: vCores-Application-Response
+                  example: !include examples/vCores-Application-Response-200.raml

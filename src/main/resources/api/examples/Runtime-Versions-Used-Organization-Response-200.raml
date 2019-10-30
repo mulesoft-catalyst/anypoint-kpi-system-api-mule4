@@ -1,0 +1,52 @@
+#%RAML 1.0 NamedExample
+value:
+  apiStatus:
+    name: Anypoint KPI System API
+    status: OK
+    statusCode: "200"
+    description: Organization successfully retrieved.
+    link: http://anypoint.kpi.system.api/200.html
+    transactionId: e77af5b0-9bf8-11e8-9002-c4b301c8ce19
+    timestamp: 2019-01-02T14:06:58.611-07:00
+  organization:
+    name: TheOrganization
+    environments: 
+      -
+        id: 3b68677b-45f8-456b-bbd6-8edff859d1f9
+        name: Development
+        type: sandbox
+        runtimeVersions: 
+          -
+            version: "3.9.0"
+            applicationsUsing: 3
+          -
+            version: "3.8.6"
+            applicationsUsing: 6
+          - 
+            version: "3.8.5"
+            applicationsUsing: 3
+      -
+        id: 3b68677b-45f8-456b-bbd6-8edff859d1f0
+        name: Production
+        type: production
+        runtimeVersions: 
+          -
+            version: "3.9.0"
+            applicationsUsing: 3
+          -
+            version: "3.8.6"
+            applicationsUsing: 6
+          - 
+            version: "3.8.5"
+            applicationsUsing: 3
+  totalApplications: 24
+  totalRuntimeVersions:
+    -
+      version: "3.9.0"
+      applicationsUsing: 6
+    -
+      version: "3.8.6"
+      applicationsUsing: 12
+    - 
+      version: "3.8.5"
+      applicationsUsing: 6
