@@ -1,0 +1,1169 @@
+{
+	"info": {
+		"_postman_id": "1c61c5ec-6481-4398-a22d-6257b5aed103",
+		"name": "Anypoint KPI System API - 3.x",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Active APIs",
+			"item": [
+				{
+					"name": "Active APIs - Organization",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Active APIs  - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Active APIs - Environment Not Found",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/{{organizationId}}/Develop?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"{{organizationId}}",
+								"Develop"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Active Applications",
+			"item": [
+				{
+					"name": "Active Applications - Organization",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/applications/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"applications",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Active Applications - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/applications/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"applications",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Contracts",
+			"item": [
+				{
+					"name": "API Contracts - Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/contracts/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"contracts",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Contracts - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/contracts/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"contracts",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Contracts - Design Environment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/contracts/{{organizationId}}/Design?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"contracts",
+								"{{organizationId}}",
+								"Design"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Contracts - Environment Not Found",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/contracts/{{organizationId}}/Desgin?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"contracts",
+								"{{organizationId}}",
+								"Desgin"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Versions",
+			"item": [
+				{
+					"name": "API Versions - Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/versions/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"versions",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Versions - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/versions/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"versions",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Versions - Design Environment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/versions/{{organizationId}}/Design?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"versions",
+								"{{organizationId}}",
+								"Design"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API Versions - Environment Not Found",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/apis/versions/{{organizationId}}/Desgin?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"apis",
+								"versions",
+								"{{organizationId}}",
+								"Desgin"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "5cc8a380-7466-4ffa-aeca-944a0027ed0d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9b689707-3806-4ad3-8167-82664a81aeac",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Exchange Assets",
+			"item": [
+				{
+					"name": "Exchange Assets - Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/exchange/assets/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"exchange",
+								"assets",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Exchange Assets Ratings",
+			"item": [
+				{
+					"name": "Exchange Assets Ratings - Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/exchange/assets/{{organizationId}}/ratings?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"exchange",
+								"assets",
+								"{{organizationId}}",
+								"ratings"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Organization",
+			"item": [
+				{
+					"name": "Name - Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/organization/{{organizationId}}/name?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"organization",
+								"{{organizationId}}",
+								"name"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reuse Metrics",
+			"item": [
+				{
+					"name": "Reuse Metrics - Organization",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/reuse/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"reuse",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reuse Metrics - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/reuse/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"reuse",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reuse Metrics - Design Environment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/reuse/{{organizationId}}/Design?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"reuse",
+								"{{organizationId}}",
+								"Design"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reuse Metrics - Environment Not Found",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/reuse/{{organizationId}}/Desgn?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"reuse",
+								"{{organizationId}}",
+								"Desgn"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Runtime Versions",
+			"item": [
+				{
+					"name": "Runtime Versions - Organization",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/runtimes/versions/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"runtimes",
+								"versions",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Runtime Versions - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/runtimes/versions/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"runtimes",
+								"versions",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "vCores Used",
+			"item": [
+				{
+					"name": "vCores Used - Organization - JSON",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/vCores/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"vCores",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "vCores Used - Organization - CSV",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/csv"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/vCores/{{organizationId}}?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"vCores",
+								"{{organizationId}}"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "vCores Used - Development Environment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/vCores/{{organizationId}}/Development?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"vCores",
+								"{{organizationId}}",
+								"Development"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "vCores Used - Application",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "client_id",
+								"value": "{{client_id}}",
+								"disabled": true
+							},
+							{
+								"key": "client_secret",
+								"value": "{{client_secret}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{host}}:{{port}}/kpi/v1/vCores/{{organizationId}}/Development/application-data-api?client_id={{client_id}}&client_secret={{client_secret}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"kpi",
+								"v1",
+								"vCores",
+								"{{organizationId}}",
+								"Development",
+								"application-data-api"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{client_id}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "493ee1bc-959e-4d0c-bf37-f31ff40e53cb",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7ddd678e-1b64-4ee8-839b-c34c2fb3c3e6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}
